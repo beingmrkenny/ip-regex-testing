@@ -1,0 +1,22 @@
+{
+  "name": "ip-regex-testing",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ip.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beingmrkenny/ip-regex-testing.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/beingmrkenny/ip-regex-testing/issues"
+  },
+  "homepage": "https://github.com/beingmrkenny/ip-regex-testing#readme",
+  "dependencies": {
+    "cidr-js": "^2.3.1"
+  }
+}
