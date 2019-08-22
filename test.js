@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const colors = require('colors');
-const cidrJs = require("cidr-js");
+const cidrJs = require("./cidr.js");
 const cidr = new cidrJs();
 const progressBar = require('progress');
 const message = function (message) {
@@ -9,8 +9,8 @@ const message = function (message) {
     console.log('\n');
 }
 
-const ipFilePath = process.argv.slice(2)[0] || './ip';
-const regexFilePath = process.argv.slice(2)[1] || './regex';
+const ipFilePath = process.argv.slice(2)[0] || 'ip';
+const regexFilePath = process.argv.slice(2)[1] || 'regex';
 
 fs.emptyDirSync(__dirname+'/output');
 
@@ -47,7 +47,7 @@ var start = new Date(),
     i = 0,
     ip,
     found = [],
-    lastB1,
+    lastB1;
     bar = new progressBar('[:bar] :percent :elapseds/:etas', {
         total: 256, width: 80, complete: '.', incomplete: ' ' }
     );
@@ -74,7 +74,7 @@ while (true) {
         lastB1 = b1;
     }
 
-    if (b1 == 255 && b2 == 255 && b3 == 255 && b4 == 255) {
+    if (b1 == 1 && b2 == 255 && b3 == 255 && b4 == 255) {
         break;
     }
 
@@ -82,41 +82,48 @@ while (true) {
 
 message(`Regex matched ${found.length} IPs. Process took ${Math.round((new Date() - start) / (1000 * 60))} mins.`);
 
-// fs.writeFileSync('output/matchingCheck.js', 'var found = ' + JSON.stringify(found) + ";\n\n");
+fs.writeFileSync('output/matchingCheck.js', 'var found = ' + JSON.stringify(found) + ";\n\n");
 
 // Generate a list from the cidr block / ips list
 var generated = [];
 for (let i = ips.length-1; i>-1; i--) {
     if (ips[i].includes('/')) {
-        for (let ip of cidr.list(ips[i])) {
-            generated.push(ip);
+        for (let generatedIp of cidr.list(ips[i])) {
+            generated.push(generatedIp);
         }
     } else {
         generated.push(ips[i]);
     }
 }
-// fs.appendFileSync('output/matchingCheck.js', 'var generated = ' + JSON.stringify(generated) + ";\n\n");
+fs.appendFileSync('output/matchingCheck.js', 'var generated = ' + JSON.stringify(generated) + ";\n\n");
 
-const pad = ip => (ip + '               ').substring(0, 15);
-var problemExists = false;
+var falseMatches = false;
+var missedIPs = false;
 
 for (let ip of found) {
     fs.appendFileSync('output/matchedIPs.txt', ip+'\n');
     if (generated.indexOf(ip) == -1) {
-        problemExists = true;
+        falseMatches = true;
         fs.appendFileSync('output/falseMatches.txt', ip+'\n');
-        console.log(`${pad(ip)} 😱 regex falsely identified an invalid IP as a match`);
+
     }
 }
 
 for (let ip of generated) {
     if (found.indexOf(ip) == -1) {
-        problemExists = true;
+        missedIPs = true;
         fs.appendFileSync('output/missedIPs.txt', ip+'\n');
-        console.log(`${pad(ip)} 😔 regex failed to identify a valid IP`);
     }
 }
 
-if (!problemExists) {
-    console.log('🎉 Checked every possible IP (4.3 billion!) against the regex(es). Every matching IP was correctly identified and no non-matching IPs were identified. Congratulations!');
+if (falseMatches) {
+    message('😱 regex falsely identified at least one invalid IP as a match, see the output folder for more information');
+}
+
+if (missedIPs) {
+    message('😔 regex failed to identify at least one valid IP, see the output folder for more information');
+}
+
+if (!falseMatches && !missedIPs) {
+    message('🎉 Checked every possible IP (4.3 billion!) against the regex(es). Every matching IP was correctly identified and no non-matching IPs were identified. Congratulations!');
 }
