@@ -41,15 +41,14 @@ try {
 
 // Generate every possible IP and save the matching IPs
 
-console.log('Now checking all 4,294,967,296 possible IP addresses');
+console.log('\n1/3: Finding matches in all 4,294,967,296 possible IP addresses ...');
 
 var start = new Date(),
     i = 0,
     ip,
     found = [],
-    lastB1;
-    bar = new progressBar('[:bar] :percent :elapseds/:etas', {
-        total: 256, width: 80, complete: '.', incomplete: ' ' }
+    bar = new progressBar('[:bar] :percent :elapseds :rate IPs per sec', {
+        total: 4294967296, width: 80, complete: '.', incomplete: ' ' }
     );
 
 while (true) {
@@ -58,6 +57,8 @@ while (true) {
     let b2 = (i >> 16) & 0xff;
     let b3 = (i >>  8) & 0xff;
     let b4 = (i)       & 0xff;
+
+    bar.tick();
 
     i++;
 
@@ -69,20 +70,15 @@ while (true) {
         }
     }
 
-    if (lastB1 != b1) {
-        bar.tick();
-        lastB1 = b1;
-    }
-
     if (b1 == 1 && b2 == 255 && b3 == 255 && b4 == 255) {
         break;
     }
 
 }
 
-message(`Regex matched ${found.length} IPs. Process took ${Math.round((new Date() - start) / (1000 * 60))} mins.`);
+// fs.writeFileSync('output/matchingCheck.js', 'var found = ' + JSON.stringify(found) + ";\n\n");
 
-fs.writeFileSync('output/matchingCheck.js', 'var found = ' + JSON.stringify(found) + ";\n\n");
+console.log(`\nMatched ${found.length} IPs. Process took ${Math.round((new Date() - start) / (1000 * 60))} mins.`);
 
 // Generate a list from the cidr block / ips list
 var generated = [];
@@ -95,35 +91,48 @@ for (let i = ips.length-1; i>-1; i--) {
         generated.push(ips[i]);
     }
 }
-fs.appendFileSync('output/matchingCheck.js', 'var generated = ' + JSON.stringify(generated) + ";\n\n");
+// fs.appendFileSync('output/matchingCheck.js', 'var generated = ' + JSON.stringify(generated) + ";\n\n");
 
-var falseMatches = false;
-var missedIPs = false;
+var falseMatchCount = 0,
+    missedIPCount = 0;
 
+console.log('\n2/3: Checking for false matches ...');
+bar = new progressBar('[:bar] :percent :elapseds :rate IPs per sec', {
+    total: found.length, width: 80, complete: '.', incomplete: ' ' }
+);
 for (let ip of found) {
+    bar.tick();
     fs.appendFileSync('output/matchedIPs.txt', ip+'\n');
     if (generated.indexOf(ip) == -1) {
-        falseMatches = true;
+        falseMatchCount++;
         fs.appendFileSync('output/falseMatches.txt', ip+'\n');
-
     }
 }
+console.log(`Falsely matched ${falseMatchCount} IPs.`);
 
+console.log('\n3/3: Checking for missed IPs ...');
+bar = new progressBar('[:bar] :percent :elapseds :rate IPs per sec', {
+    total: generated.length, width: 80, complete: '.', incomplete: ' ' }
+);
 for (let ip of generated) {
+    bar.tick();
     if (found.indexOf(ip) == -1) {
-        missedIPs = true;
+        missedIPCount++;
         fs.appendFileSync('output/missedIPs.txt', ip+'\n');
     }
 }
+console.log(`Failed to match ${missedIPCount} IPs.`);
 
-if (falseMatches) {
-    message('😱 regex falsely identified at least one invalid IP as a match, see the output folder for more information');
+if (falseMatchCount > 0) {
+    console.log(`\n😱 regex falsely identified ${falseMatchCount} invalid IPs as a match`);
 }
 
-if (missedIPs) {
-    message('😔 regex failed to identify at least one valid IP, see the output folder for more information');
+if (missedIPCount > 0) {
+    console.log(`\n😔 regex failed to identify ${missedIPCount} valid IPs`);
 }
 
-if (!falseMatches && !missedIPs) {
-    message('🎉 Checked every possible IP (4.3 billion!) against the regex(es). Every matching IP was correctly identified and no non-matching IPs were identified. Congratulations!');
+if (falseMatchCount == 0 && missedIPCount == 0) {
+    console.log('\n🎉 Checked every possible IP (4.3 billion!) against the regex(es). Every matching IP was correctly identified and no non-matching IPs were identified. Congratulations!');
+} else {
+    console.log('\nYour regex is not right :( see the output folder for more information');
 }
