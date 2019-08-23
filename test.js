@@ -41,7 +41,7 @@ try {
 
 // Generate every possible IP and save the matching IPs
 
-console.log('\n1/3: Finding matches in all 4,294,967,296 possible IP addresses ...');
+console.log('\n1/3: Checking all 4,294,967,296 possible IP addresses to find the ones your regex matches ...');
 
 var start = new Date(),
     i = 0,
@@ -70,7 +70,7 @@ while (true) {
         }
     }
 
-    if (b1 == 1 && b2 == 255 && b3 == 255 && b4 == 255) {
+    if (b1 == 255 && b2 == 255 && b3 == 255 && b4 == 255) {
         break;
     }
 
@@ -134,5 +134,5 @@ if (missedIPCount > 0) {
 if (falseMatchCount == 0 && missedIPCount == 0) {
     console.log('\n🎉 Checked every possible IP (4.3 billion!) against the regex(es). Every matching IP was correctly identified and no non-matching IPs were identified. Congratulations!');
 } else {
-    console.log('\nYour regex is not right :( see the output folder for more information');
+    console.log('\nYour regex still needs work :( see the output folder for the specific IPs');
 }
