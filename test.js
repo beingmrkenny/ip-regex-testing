@@ -78,9 +78,10 @@ while (true) {
 
 // fs.writeFileSync('output/matchingCheck.js', 'var found = ' + JSON.stringify(found) + ";\n\n");
 
-console.log(`\nMatched ${found.length} IPs. Process took ${Math.round((new Date() - start) / (1000 * 60))} mins.`);
+console.log(`Matched ${found.length} IPs. Process took ${Math.round((new Date() - start) / (1000 * 60))} mins.`);
 
 // Generate a list from the cidr block / ips list
+console.log('\nGenerating full list of IPs regex should match ...');
 var generated = [];
 for (let i = ips.length-1; i>-1; i--) {
     if (ips[i].includes('/')) {
@@ -121,7 +122,7 @@ for (let ip of generated) {
         fs.appendFileSync('output/missedIPs.txt', ip+'\n');
     }
 }
-console.log(`Failed to match ${missedIPCount} IPs.`);
+console.log(`Failed to match ${missedIPCount} valid IPs.`);
 
 if (falseMatchCount > 0) {
     console.log(`\n😱 regex falsely identified ${falseMatchCount} invalid IPs as a match`);
@@ -132,7 +133,7 @@ if (missedIPCount > 0) {
 }
 
 if (falseMatchCount == 0 && missedIPCount == 0) {
-    console.log('\n🎉 Checked every possible IP (4.3 billion!) against the regex(es). Every matching IP was correctly identified and no non-matching IPs were identified. Congratulations!');
+    console.log('\n🎉 Checked every possible IP against the regex(es). Every matching IP was correctly identified and no non-matching IPs were identified. This regex is perfect.');
 } else {
     console.log('\nYour regex still needs work :( see the output folder for the specific IPs');
 }
