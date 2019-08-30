@@ -30,7 +30,7 @@ If your regex contains alternatives, wrap the whole thing in `^()$`, e.g. `^(12\
 
 For example, the regex `12\.234\.45\.21|13\.121\.113\.23` looks like it will only match 2 IPs but will in fact match any IP containing `12\.234\.45\.21` or `13\.121\.113\.23`, which is **66** IP addresses.
 
-The same is true for `(12\.234\.45\.21|13\.121\.113\.23)` and `^12\.234\.45\.21|13\.121\.113\.23$`, which are equally as inaccurate.
+The same is true for `(12\.234\.45\.21|13\.121\.113\.23)` and `^12\.234\.45\.21|13\.121\.113\.23$`, which are also inaccurate.
 
 ## Visual editing
 
